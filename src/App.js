@@ -12,7 +12,13 @@ function App() {
   const [weather, setWeather] = useState({});
   const [errorText, setErrorText] = useState('');
 
+  const cities = ['vancouver', 'london', 'paris', 'new york'];
+
   useEffect(() => {
+    if (query === '') {
+      return;
+    }
+
     fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
       .then((res) => {
         if (!res.ok) {
@@ -21,12 +27,22 @@ function App() {
         return res.json();
       })
       .then((result) => {
+        setQueryInput('');
         setWeather(result);
       })
       .catch((error) => {
         setErrorText(error.message);
       });
   }, [query]);
+
+  const filterCities = (city) => {
+    return city.includes(queryInput);
+  };
+
+  const handleCityClicked = (city, event) => {
+    setQueryInput(city);
+    setQuery(city);
+  };
 
   const search = (evt) => {
     if (evt.key === 'Enter') {
@@ -54,6 +70,17 @@ function App() {
             value={queryInput}
             onKeyPress={search}
           />
+          <div>
+            {queryInput &&
+              cities.filter(filterCities).map((city) => (
+                <h3
+                  onClick={(event) => handleCityClicked(city, event)}
+                  key={city}
+                >
+                  {city}
+                </h3>
+              ))}
+          </div>
         </div>
 
         {typeof weather.main != 'undefined' ? (
