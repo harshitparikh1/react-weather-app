@@ -1,93 +1,81 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect } from 'react';
+import { dateBuilder } from './utils/dateBuilder';
+
 const api = {
-  key: "d577f2d8e2fff84f0fcd18278d6719e4",
-  base: "https://api.openweathermap.org/data/2.5/"
-}
+  key: 'd577f2d8e2fff84f0fcd18278d6719e4',
+  base: 'https://api.openweathermap.org/data/2.5/',
+};
 
 function App() {
+  const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
   const [weather, setWeather] = useState({});
-  const [errorText, setErrorText] = useState(null);
+  const [errorText, setErrorText] = useState('');
 
-  const search = evt => {
-    if (evt.key === "Enter") {
+  useEffect(() => {
+    fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('City not found. TEST');
+        }
+        return res.json();
+      })
+      .then((result) => {
+        setWeather(result);
+      })
+      .catch((error) => {
+        setErrorText(error.message);
+      });
+  }, [query]);
 
-      useEffect(() => {  
-        fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
-        .then(res => res.json())
-        .then(result => {
-          setWeather(result);
-          setQuery('');
-          console.log(result);
-        })
-        .catch(errorText => setErrorText("City not found."));
-      }, [query])
+  const search = (evt) => {
+    if (evt.key === 'Enter') {
+      setQuery(queryInput);
     }
-  }
-
-  const dateBuilder = (d) => {
-    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-    let day = days[d.getDay()];
-    let date = d.getDate();
-    let month = months[d.getMonth()];
-    let year = d.getFullYear();
-
-    return `${day} ${date} ${month} ${year}`
-  }
+  };
 
   return (
-    <div className = 
-    {
-      (typeof weather.main != "undefined") ?
-        (
-          (weather.main.temp > 16) ? 'app-warm' : 'app'
-        ) 
-      : 'app'
-    }
+    <div
+      className={
+        typeof weather.main != 'undefined'
+          ? weather.main.temp > 16
+            ? 'app-warm'
+            : 'app'
+          : 'app'
+      }
     >
-        <main>
-          <div className="search-box">
-            <input
-              type="text"
-              className="search-bar"
-              placeholder="Search..."
-              onChange={e => setQuery(e.target.value)}
-              value = {query}
-              onKeyPress={search}
-            />
-          </div>
+      <main>
+        <div className="search-box">
+          <input
+            type="text"
+            className="search-bar"
+            placeholder="Search..."
+            onChange={(e) => setQueryInput(e.target.value)}
+            value={queryInput}
+            onKeyPress={search}
+          />
+        </div>
 
-        { (typeof weather.main != "undefined") ? (
-
+        {typeof weather.main != 'undefined' ? (
           <div>
-            
             <div className="location-box">
-              <div className="location">{weather.name}, {weather.sys.country} </div>
-              <div className="date"> {dateBuilder(new Date())}  </div>
+              <div className="location">
+                {weather.name}, {weather.sys.country}{' '}
+              </div>
+              <div className="date"> {dateBuilder(new Date())} </div>
             </div>
 
             <div className="weather-box">
-              <div className="temp">
-                {Math.round(weather.main.temp)}°C
-              </div>
+              <div className="temp">{Math.round(weather.main.temp)}°C</div>
               <div className="weather"> {weather.weather[0].main} </div>
-
             </div>
-          
           </div>
-          )
-          : (
-            <div className="weather-box">
-              <div className="weather">
-                {errorText || 'no error'}
-              </div>
-            </div>
-          )
-        }
-
-        </main>
+        ) : (
+          <div className="weather-box">
+            <div className="weather">{errorText}</div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
