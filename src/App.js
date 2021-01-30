@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 const api = {
   key: "d577f2d8e2fff84f0fcd18278d6719e4",
   base: "https://api.openweathermap.org/data/2.5/"
@@ -7,16 +7,21 @@ const api = {
 function App() {
   const [query, setQuery] = useState('');
   const [weather, setWeather] = useState({});
+  const [errorText, setErrorText] = useState(null);
 
   const search = evt => {
     if (evt.key === "Enter") {
-      fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
+
+      useEffect(() => {  
+        fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
         .then(res => res.json())
         .then(result => {
           setWeather(result);
           setQuery('');
           console.log(result);
-        });
+        })
+        .catch(errorText => setErrorText("City not found."));
+      }, [query])
     }
   }
 
@@ -58,22 +63,28 @@ function App() {
 
           <div>
             
-          <div className="location-box">
-            <div className="location">{weather.name}, {weather.sys.country} </div>
-            <div className="date"> {dateBuilder(new Date())}  </div>
-          </div>
-
-          <div className="weather-box">
-            <div className="temp">
-            {Math.round(weather.main.temp)}°C
+            <div className="location-box">
+              <div className="location">{weather.name}, {weather.sys.country} </div>
+              <div className="date"> {dateBuilder(new Date())}  </div>
             </div>
-            <div className="weather"> {weather.weather[0].main} </div>
 
-          </div>
+            <div className="weather-box">
+              <div className="temp">
+                {Math.round(weather.main.temp)}°C
+              </div>
+              <div className="weather"> {weather.weather[0].main} </div>
+
+            </div>
           
           </div>
           )
-          : ('')
+          : (
+            <div className="weather-box">
+              <div className="weather">
+                {errorText || 'no error'}
+              </div>
+            </div>
+          )
         }
 
         </main>
